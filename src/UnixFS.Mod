@@ -145,30 +145,33 @@ BEGIN
           fileList^[i].attr := {};  (* Reset attributes *)
 
           mode := statMode(st);  (* Fetch mode once *)
+          (*
           Out.String("Checking: "); Out.String(fileList^[i].name); Out.Ln;
           Out.String("Mode: "); Out.Int(mode, 0); Out.Ln;  (* Log the mode *)
-
+          *)
           (* Identify if it's a directory or file and assign attributes accordingly *)
           IF isDir(mode) # 0 THEN
             fileList^[i].attr := fileList^[i].attr + dirEl;
-            Out.String("Type: Directory"); Out.Ln;  (* Log detection *)
+            (*Out.String("Type: Directory"); Out.Ln; *) (* Log detection *)
           ELSIF isReg(mode) # 0 THEN
             fileList^[i].attr := fileList^[i].attr + fileEl;
-            Out.String("Type: File"); Out.Ln;  (* Log detection *)
+            (*Out.String("Type: File"); Out.Ln; *) (* Log detection *)
           ELSIF isLnk(mode) # 0 THEN
             fileList^[i].attr := fileList^[i].attr + symlinkEl;
-            Out.String("Type: Symlink"); Out.Ln;  (* Log detection *)
+            (*Out.String("Type: Symlink"); Out.Ln; *) (* Log detection *)
           ELSIF isFIFO(mode) # 0 THEN
             fileList^[i].attr := fileList^[i].attr + fifoEl;
-            Out.String("Type: FIFO"); Out.Ln;  (* Log detection *)
+            (*Out.String("Type: FIFO"); Out.Ln; *) (* Log detection *)
           ELSIF isSock(mode) # 0 THEN
             fileList^[i].attr := fileList^[i].attr + socketEl;
-            Out.String("Type: Socket"); Out.Ln;  (* Log detection *)
+            (*Out.String("Type: Socket"); Out.Ln; *) (* Log detection *)
           ELSIF isBlock(mode) # 0 THEN
             fileList^[i].attr := fileList^[i].attr + blockEl;
-            Out.String("Type: Block Device"); Out.Ln;  (* Log detection *)
-          ELSE
+            (*Out.String("Type: Block Device"); Out.Ln; *) (* Log detection *)
+          (*
+            ELSE
             Out.String("Type: Unknown"); Out.Ln;  (* Log detection for unknown types *)
+          *)
           END;
         ELSE
           Out.String("Failed to stat file: "); Out.String(fullPath); Out.Ln;
