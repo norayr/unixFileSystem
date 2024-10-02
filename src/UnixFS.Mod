@@ -1,17 +1,23 @@
 MODULE UnixFS;
 IMPORT SYSTEM, UnixStat;
 
+CONST
+  dir* = 0; char* = 1; block* = 2; file* = 3; fifo* = 4;
+  symlink* = 5; socket* = 6;
+
 TYPE
    fileInfo* = RECORD;
      name* : ARRAY 256 OF CHAR;
      attr- : SET
      END;
 
-  Status = UnixStat.Status;
+  Status = ARRAY 512 OF SYSTEM.BYTE;
 
 PROCEDURE -Aincludesysstat '#include <sys/stat.h>';
 PROCEDURE -Aincludesystypes '#include <sys/types.h>';
-
+(*
+PROCEDURE -AinitStatus 'struct stat st';
+*)
 PROCEDURE -mkdir(VAR path: ARRAY OF CHAR): INTEGER
   "(int)mkdir(path, 0755)";
 
@@ -21,6 +27,9 @@ BEGIN
    res := mkdir(path);
    IF res = 0 THEN RETURN TRUE ELSE RETURN FALSE END
 END mkDir;
+
+PROCEDURE -statMode(VAR st: Status): LONGINT "((struct stat*)&st)->st_mode";
+
 
 PROCEDURE -stat(VAR path : ARRAY OF CHAR; st: Status): INTEGER
 "stat((const char*)path, (struct stat*)&st)";
@@ -50,25 +59,27 @@ PROCEDURE Exists*(VAR fl : fileInfo): BOOLEAN;
 VAR
   i : INTEGER;
   st: Status;
+  mode: LONGINT;
 BEGIN
   fl.attr := {};
   i := stat(fl.name, st);
   IF i < 0 THEN RETURN FALSE  END;
   IF i = 0 THEN (* file exists*)
-    i := isDir(st.mode);
-    IF i # 0 THEN fl.attr := fl.attr + {UnixStat.dir} END;
-    i := isChar(st.mode);
-    IF i # 0 THEN fl.attr := fl.attr + {UnixStat.char} END;
-    i := isBlock(st.mode);
-    IF i # 0 THEN fl.attr := fl.attr + {UnixStat.block} END;
-    i := isReg(st.mode);
-    IF i # 0 THEN fl.attr := fl.attr + {UnixStat.file} END;
-    i := isFIFO(st.mode);
-    IF i # 0 THEN fl.attr := fl.attr + {UnixStat.fifo} END;
-    i := isLnk(st.mode);
-    IF i # 0 THEN fl.attr := fl.attr + {UnixStat.symlink} END;
-    i := isSock(st.mode);
-    IF i # 0 THEN fl.attr := fl.attr + {UnixStat.socket} END;
+    mode := statMode(st);
+    i := isDir(mode);
+    IF i # 0 THEN fl.attr := fl.attr + {dir} END;
+    i := isChar(mode);
+    IF i # 0 THEN fl.attr := fl.attr + {char} END;
+    i := isBlock(mode);
+    IF i # 0 THEN fl.attr := fl.attr + {block} END;
+    i := isReg(mode);
+    IF i # 0 THEN fl.attr := fl.attr + {file} END;
+    i := isFIFO(mode);
+    IF i # 0 THEN fl.attr := fl.attr + {fifo} END;
+    i := isLnk(mode);
+    IF i # 0 THEN fl.attr := fl.attr + {symlink} END;
+    i := isSock(mode);
+    IF i # 0 THEN fl.attr := fl.attr + {socket} END;
     RETURN TRUE
   END;
 END Exists;
@@ -78,26 +89,28 @@ VAR
   i : INTEGER;
   st: Status;
   fl: fileInfo;
+  mode: LONGINT;
 BEGIN
   fl.attr := {};
   COPY(fileName, fl.name);
   i := stat(fl.name, st);
   IF i < 0 THEN RETURN FALSE  END;
   IF i = 0 THEN (* file exists*)
-    i := isDir(st.mode);
-    IF i # 0 THEN fl.attr := fl.attr + {UnixStat.dir} END;
-    i := isChar(st.mode);
-    IF i # 0 THEN fl.attr := fl.attr + {UnixStat.char} END;
-    i := isBlock(st.mode);
-    IF i # 0 THEN fl.attr := fl.attr + {UnixStat.block} END;
-    i := isReg(st.mode);
-    IF i # 0 THEN fl.attr := fl.attr + {UnixStat.file} END;
-    i := isFIFO(st.mode);
-    IF i # 0 THEN fl.attr := fl.attr + {UnixStat.fifo} END;
-    i := isLnk(st.mode);
-    IF i # 0 THEN fl.attr := fl.attr + {UnixStat.symlink} END;
-    i := isSock(st.mode);
-    IF i # 0 THEN fl.attr := fl.attr + {UnixStat.socket} END;
+    mode := statMode(st);
+    i := isDir(mode);
+    IF i # 0 THEN fl.attr := fl.attr + {dir} END;
+    i := isChar(mode);
+    IF i # 0 THEN fl.attr := fl.attr + {char} END;
+    i := isBlock(mode);
+    IF i # 0 THEN fl.attr := fl.attr + {block} END;
+    i := isReg(mode);
+    IF i # 0 THEN fl.attr := fl.attr + {file} END;
+    i := isFIFO(mode);
+    IF i # 0 THEN fl.attr := fl.attr + {fifo} END;
+    i := isLnk(mode);
+    IF i # 0 THEN fl.attr := fl.attr + {symlink} END;
+    i := isSock(mode);
+    IF i # 0 THEN fl.attr := fl.attr + {socket} END;
     RETURN TRUE
   END;
 END ExistsByName;
