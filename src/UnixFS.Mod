@@ -1,5 +1,5 @@
 MODULE UnixFS;
-IMPORT SYSTEM, UnixStat;
+IMPORT SYSTEM;
 
 CONST
   dir* = 0; char* = 1; block* = 2; file* = 3; fifo* = 4;
