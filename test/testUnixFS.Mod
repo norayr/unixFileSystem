@@ -29,15 +29,22 @@ BEGIN
 
   (* Process the fileList array *)
   FOR i := 0 TO LEN(fileList^)-1 DO
-    IF UnixFS.dir IN fileList^[i].attr
-    THEN
+    IF UnixFS.dir IN fileList^[i].attr THEN
       Out.String("Dir: ")
     ELSIF UnixFS.file IN fileList^[i].attr THEN
       Out.String("File: ")
+    ELSIF UnixFS.symlink IN fileList^[i].attr THEN
+      Out.String("Symlink: ")
+    ELSIF UnixFS.fifo IN fileList^[i].attr THEN
+      Out.String("FIFO: ")
+    ELSIF UnixFS.socket IN fileList^[i].attr THEN
+      Out.String("Socket: ")
+    ELSIF UnixFS.block IN fileList^[i].attr THEN
+      Out.String("Block Device: ")
     ELSE
       Out.String("Other: ")
     END;
-    Out.String(fileList^[i].name); Out.Ln
+    Out.String(fileList^[i].name); Out.Ln;
   END;
 
 END test;

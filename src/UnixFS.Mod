@@ -1,5 +1,5 @@
 MODULE UnixFS;
-IMPORT SYSTEM, Out;
+IMPORT SYSTEM, Out, Strings;
 
 TYPE
    fileInfo* = RECORD;
@@ -110,6 +110,7 @@ PROCEDURE ListDir*(path: ARRAY OF CHAR; VAR fileList: list);
 VAR
   dir, entry: SYSTEM.PTR;
   entryName: ARRAY 256 OF CHAR;
+  fullPath: ARRAY 512 OF CHAR;
   i, fileCount: INTEGER;
   st: Status;
   mode: LONGINT;
@@ -131,33 +132,47 @@ BEGIN
         (* Use the helper procedure to copy the entry name *)
         CopyCStringToOberon(direntName(entry), entryName);
 
+        (* Construct the full path *)
+        COPY(path, fullPath);  (* Copy the base path *)
+        Strings.Append("/", fullPath);  (* Append "/" *)
+        Strings.Append(entryName, fullPath);  (* Append the entry name *)
+
         (* Copy the file name to fileInfo *)
         COPY(entryName, fileList^[i].name);
 
-        (* Get the file attributes using stat *)
-        IF stat(fileList^[i].name, st) = 0 THEN
+        (* Get the file attributes using stat with full path *)
+        IF stat(fullPath, st) = 0 THEN
           fileList^[i].attr := {};  (* Reset attributes *)
 
           mode := statMode(st);  (* Fetch mode once *)
-          (* Identify if it's a directory or file and assign attributes accordingly *)
+          Out.String("Checking: "); Out.String(fileList^[i].name); Out.Ln;
+          Out.String("Mode: "); Out.Int(mode, 0); Out.Ln;  (* Log the mode *)
 
+          (* Identify if it's a directory or file and assign attributes accordingly *)
           IF isDir(mode) # 0 THEN
             fileList^[i].attr := fileList^[i].attr + dirEl;
-            (*Out.String("Directory: ");*)  (* Output more descriptive information *)
+            Out.String("Type: Directory"); Out.Ln;  (* Log detection *)
           ELSIF isReg(mode) # 0 THEN
             fileList^[i].attr := fileList^[i].attr + fileEl;
-            (*Out.String("File: ");*)
-          (*
+            Out.String("Type: File"); Out.Ln;  (* Log detection *)
+          ELSIF isLnk(mode) # 0 THEN
+            fileList^[i].attr := fileList^[i].attr + symlinkEl;
+            Out.String("Type: Symlink"); Out.Ln;  (* Log detection *)
+          ELSIF isFIFO(mode) # 0 THEN
+            fileList^[i].attr := fileList^[i].attr + fifoEl;
+            Out.String("Type: FIFO"); Out.Ln;  (* Log detection *)
+          ELSIF isSock(mode) # 0 THEN
+            fileList^[i].attr := fileList^[i].attr + socketEl;
+            Out.String("Type: Socket"); Out.Ln;  (* Log detection *)
+          ELSIF isBlock(mode) # 0 THEN
+            fileList^[i].attr := fileList^[i].attr + blockEl;
+            Out.String("Type: Block Device"); Out.Ln;  (* Log detection *)
           ELSE
-            Out.String("Other (special): ");
-          *)
+            Out.String("Type: Unknown"); Out.Ln;  (* Log detection for unknown types *)
           END;
+        ELSE
+          Out.String("Failed to stat file: "); Out.String(fullPath); Out.Ln;
         END;
-
-        (* Print fileInfo for debugging *)
-        (*
-        Out.String(fileList^[i].name); Out.Ln;
-        *)
 
         INC(i);  (* Move to the next fileInfo entry *)
       END;
