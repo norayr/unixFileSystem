@@ -25,7 +25,6 @@ build_deps:
 
 buildThis:
 	mkdir -p $(BUILD)
-	cd $(BUILD) && $(VOC) -s $(mkfile_dir_path)/src/LinuxStat.Mod
 	cd $(BUILD) && $(VOC) -s $(mkfile_dir_path)/src/UnixFS.Mod
 
 tests:
